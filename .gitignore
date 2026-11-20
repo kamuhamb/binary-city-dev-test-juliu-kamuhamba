@@ -1,0 +1,25 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+config/config.local.php
+config/database.local.php
+
+# Database backups
+*.dump
+*.backup
+*.bak
+
+# Temporary files
+*.log
+*.tmp
+.~lock.*
+.DS_Store
+
+# Dependencies
+vendor/
+node_modules/
+
+# IDE and operating system
+.idea/
+.vscode/

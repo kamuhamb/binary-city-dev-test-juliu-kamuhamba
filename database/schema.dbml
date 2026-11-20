@@ -1,0 +1,38 @@
+// Paste into https://dbdiagram.io to render the ER diagram (PostgreSQL)
+Table clients {
+  id integer [pk, increment]
+  name varchar(150) [not null]
+  client_code char(6) [not null, unique, note: '3 uppercase letters + 3 digits, e.g. FNB001']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    `lower(name)` [name: 'ix_clients_name']
+  }
+}
+
+Table contacts {
+  id integer [pk, increment]
+  name varchar(100) [not null]
+  surname varchar(100) [not null]
+  email varchar(190) [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    `lower(email)` [unique, name: 'uq_contacts_email']
+    `lower(surname || ' ' || name)` [name: 'ix_contacts_fullname']
+  }
+}
+
+Table client_contact {
+  client_id integer [not null]
+  contact_id integer [not null]
+  linked_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (client_id, contact_id) [pk]
+    (contact_id, client_id) [name: 'ix_cc_contact']
+  }
+}
+
+Ref: client_contact.client_id > clients.id [delete: cascade]
+Ref: client_contact.contact_id > contacts.id [delete: cascade]

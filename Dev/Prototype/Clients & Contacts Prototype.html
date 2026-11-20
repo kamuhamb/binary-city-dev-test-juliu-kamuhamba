@@ -1,0 +1,310 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Clients & Contacts Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+  /* Layout: a quiet working tool. Top bar with two sections, one card that holds the active list or form. */
+  :root {
+    --bg:#f4f5f7; --surface:#ffffff; --line:#d9dde3; --ink:#1b2230; --muted:#667085;
+    --accent:#2457d6; --accent-ink:#ffffff; --err:#c62828; --ok:#2e7d32;
+    --hover:#eef3ff; --field:#ffffff; --field-ro:#eceff3; --note:#fff7e0; --note-ink:#6b4e00;
+    --font-body:'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-head:'Space Grotesk', 'Inter', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#12151c; --surface:#1a1f2a; --line:#2c3342; --ink:#e8ebf1; --muted:#98a2b3;
+      --accent:#7aa2ff; --accent-ink:#0d1424; --err:#ff8a80; --ok:#7bd88f;
+      --hover:#222a3b; --field:#151a24; --field-ro:#20262f; --note:#2b2410; --note-ink:#f1d98a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#12151c; --surface:#1a1f2a; --line:#2c3342; --ink:#e8ebf1; --muted:#98a2b3;
+    --accent:#7aa2ff; --accent-ink:#0d1424; --err:#ff8a80; --ok:#7bd88f;
+    --hover:#222a3b; --field:#151a24; --field-ro:#20262f; --note:#2b2410; --note-ink:#f1d98a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); }
+  .wrap { max-width: 920px; margin: 0 auto; padding-block: 0 48px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  header { border-bottom: 1px solid var(--line); background: var(--surface); }
+  header .wrap { display: flex; flex-wrap: wrap; gap: 4px 28px; align-items: center; padding-block: 0; }
+  header h1 { font: 600 16px/1 var(--font-head); margin: 0; padding-block: 18px; }
+  nav { display: flex; gap: 20px; }
+  nav a { padding-block: 18px 16px; color: var(--muted); border-bottom: 2px solid transparent; cursor: pointer; text-decoration: none; }
+  nav a.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+  .demo { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 16px 0; padding: 10px 14px;
+          background: var(--note); color: var(--note-ink); border-radius: 6px; font-size: 13px; }
+  .demo span { flex: 1 1 260px; min-width: 0; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .bar h2 { margin: 0; font: 600 20px/1.2 var(--font-head); }
+  button { font: inherit; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 420px; }
+  th, td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 13px; }
+  .c { text-align: center; }
+  td.num { font-variant-numeric: tabular-nums; }
+  tr.row { cursor: pointer; } tr.row:hover { background: var(--hover); }
+  .empty { color: var(--muted); padding: 18px 4px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+  .tab { background: none; color: var(--muted); border-radius: 0; border-bottom: 2px solid transparent; padding: 9px 16px; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab[disabled] { opacity: .45; cursor: not-allowed; }
+  label { display: block; font-weight: 500; margin: 14px 0 4px; }
+  input[type=text], select { width: 100%; max-width: 440px; padding: 8px 10px; background: var(--field); color: var(--ink);
+                             border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  input[readonly] { background: var(--field-ro); }
+  input.invalid { border-color: var(--err); }
+  .msg { color: var(--err); font-size: 13px; min-height: 20px; }
+  .link-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .link-row select { flex: 1 1 240px; min-width: 0; }
+  .actions { margin-top: 20px; display: flex; gap: 8px; }
+  a.unlink { color: var(--err); cursor: pointer; text-decoration: underline; }
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+           background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 6px; opacity: 0; transition: opacity .25s; pointer-events: none; max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; } .toast.err { background: var(--err); color: var(--surface); } .toast.ok { background: var(--ok); color: var(--surface); }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+
+<header><div class="wrap">
+  <h1>Clients &amp; Contacts</h1>
+  <nav><a id="nav-clients" tabindex="0" onclick="Views.clients()">Clients</a><a id="nav-contacts" tabindex="0" onclick="Views.contacts()">Contacts</a></nav>
+</div></header>
+<div class="wrap">
+  <div class="demo" id="demo">
+    <span id="demo-text"></span>
+    <button class="secondary" id="demo-sample" onclick="Demo.sample()">Load sample data</button>
+    <button class="secondary" id="demo-clear" onclick="Demo.clear()">Clear all data</button>
+  </div>
+  <div class="card" id="view"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ============ Data layer (stands in for the PHP + PostgreSQL layer) ============ */
+const Store = { clients: [], contacts: [], links: [], nextId: 1, sample: false, id() { return this.nextId++; } };
+
+/* ============ Domain logic (same rules as the PHP app) ============ */
+/* Exact empty-state strings from the spec; the wording differs per screen */
+const Msg = { noClients: 'No client(s) found.',            // Clients list
+              noContacts: 'No contact(s) found.',          // Contacts list
+              noContactsOnClient: 'No contacts found.',    // Client form > Contact(s) tab
+              noClientsOnContact: 'No contact(s) found.' };// Contact form > Client(s) tab (spec wording)
+
+const fullName = c => `${c.surname} ${c.name}`;
+const byText = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+/* 3+ words -> initials of first three; otherwise first three letters; pad with A, B, C when short */
+function codePrefix(name) {
+  const words = name.toUpperCase().replace(/[^A-Z\s]/g, '').split(/\s+/).filter(Boolean);
+  let p = words.length >= 3 ? words.slice(0, 3).map(w => w[0]).join('') : words.join('').slice(0, 3);
+  for (let i = 0; p.length < 3; i++) p += String.fromCharCode(65 + (i % 26));
+  return p;
+}
+function generateClientCode(name, existing) {              // existing = set of used codes (a SQL lookup in the real app)
+  const prefix = codePrefix(name);
+  for (let n = 1; n <= 999; n++) {
+    const code = prefix + String(n).padStart(3, '0');
+    if (!existing.has(code)) return code;                  // sequential, never random
+  }
+  throw new Error('No codes left for prefix ' + prefix);
+}
+const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+
+/* ============ UI helpers ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let toastTimer;
+function toast(text, kind = 'ok') {
+  const t = $('#toast'); t.textContent = text; t.className = 'toast show ' + kind;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = 'toast', 2400);
+}
+function setNav(id) { document.querySelectorAll('nav a').forEach(a => a.classList.toggle('active', a.id === id)); }
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.pane').forEach(p => p.hidden = p.dataset.pane !== name);
+}
+function fieldError(input, text) { input.classList.toggle('invalid', !!text); input.nextElementSibling.textContent = text || ''; return !text; }
+function linkedClients(contactId) { return Store.links.filter(l => l.contactId === contactId).map(l => Store.clients.find(c => c.id === l.clientId)).sort((a, b) => byText(a.name, b.name)); }
+function linkedContacts(clientId) { return Store.links.filter(l => l.clientId === clientId).map(l => Store.contacts.find(c => c.id === l.contactId)).sort((a, b) => byText(fullName(a), fullName(b))); }
+
+/* ============ Views ============ */
+const Views = {
+  current: 'clients',
+
+  clients() {
+    this.current = 'clients'; setNav('nav-clients');
+    const rows = [...Store.clients].sort((a, b) => byText(a.name, b.name));
+    $('#view').innerHTML = `
+      <div class="bar"><h2>Clients</h2><button onclick="Views.clientForm()">New client</button></div>
+      ${rows.length === 0 ? `<div class="empty">${Msg.noClients}</div>` : `
+      <div class="scroll"><table><thead><tr><th>Name</th><th>Client code</th><th class="c">No. of linked contacts</th></tr></thead><tbody>
+      ${rows.map(c => `<tr class="row" onclick="Views.clientForm(${c.id})"><td>${esc(c.name)}</td><td>${c.code}</td>
+        <td class="c num">${Store.links.filter(l => l.clientId === c.id).length}</td></tr>`).join('')}
+      </tbody></table></div>`}`;
+  },
+
+  contacts() {
+    this.current = 'contacts'; setNav('nav-contacts');
+    const rows = [...Store.contacts].sort((a, b) => byText(fullName(a), fullName(b)));
+    $('#view').innerHTML = `
+      <div class="bar"><h2>Contacts</h2><button onclick="Views.contactForm()">New contact</button></div>
+      ${rows.length === 0 ? `<div class="empty">${Msg.noContacts}</div>` : `
+      <div class="scroll"><table><thead><tr><th>Name</th><th>Surname</th><th>Email address</th><th class="c">No. of linked clients</th></tr></thead><tbody>
+      ${rows.map(c => `<tr class="row" onclick="Views.contactForm(${c.id})"><td>${esc(c.name)}</td><td>${esc(c.surname)}</td><td>${esc(c.email)}</td>
+        <td class="c num">${Store.links.filter(l => l.contactId === c.id).length}</td></tr>`).join('')}
+      </tbody></table></div>`}`;
+  },
+
+  clientForm(id) {
+    this.current = 'clients'; setNav('nav-clients');
+    const client = id ? Store.clients.find(c => c.id === id) : null;
+    $('#view').innerHTML = `
+      <div class="bar"><h2>${client ? 'Edit client' : 'New client'}</h2><button class="secondary" onclick="Views.clients()">Back</button></div>
+      <div class="tabs">
+        <button type="button" class="tab" data-tab="general" onclick="showTab('general')">General</button>
+        <button type="button" class="tab" data-tab="contacts" ${client ? 'onclick="showTab(\'contacts\')"' : 'disabled'}>Contact(s)</button>
+      </div>
+      <div class="pane" data-pane="general">
+        <form id="f" novalidate>
+          <label for="name">Name</label><input type="text" id="name" value="${client ? esc(client.name) : ''}" autocomplete="off"><div class="msg"></div>
+          ${client ? `<label for="code">Client code</label><input type="text" id="code" value="${client.code}" readonly><div class="msg"></div>` : ''}
+          <div class="actions"><button type="submit">Save</button></div>
+        </form>
+      </div>
+      <div class="pane" data-pane="contacts" hidden></div>`;
+    showTab('general');
+    $('#f').onsubmit = e => {
+      e.preventDefault();
+      const input = $('#name'), name = input.value.trim();
+      if (!fieldError(input, name ? (name.length > 150 ? 'Name must be 150 characters or fewer.' : '') : 'Name is required.')) return;
+      if (client) { client.name = name; toast('Client saved'); return; }
+      const code = generateClientCode(name, new Set(Store.clients.map(c => c.code)));
+      const created = { id: Store.id(), name, code };
+      Store.clients.push(created);
+      toast('Client saved with code ' + code);
+      Views.clientForm(created.id);                       // reopen: the code is now shown and the Contact(s) tab is enabled
+    };
+    if (client) this.renderClientContacts(client);
+  },
+
+  renderClientContacts(client) {
+    const linked = linkedContacts(client.id);
+    const free = Store.contacts.filter(c => !linked.includes(c)).sort((a, b) => byText(fullName(a), fullName(b)));
+    $('[data-pane=contacts]').innerHTML = `
+      <div class="link-row"><select id="pick" aria-label="Contact to link"><option value="">Select a contact…</option>
+        ${free.map(c => `<option value="${c.id}">${esc(fullName(c))} (${esc(c.email)})</option>`).join('')}</select>
+        <button onclick="Actions.linkContact(${client.id})">Link contact</button></div>
+      ${linked.length === 0 ? `<div class="empty">${Msg.noContactsOnClient}</div>` : `
+      <div class="scroll"><table><thead><tr><th>Contact Full Name</th><th>Contact email address</th><th></th></tr></thead><tbody>
+      ${linked.map(c => `<tr><td>${esc(fullName(c))}</td><td>${esc(c.email)}</td>
+        <td><a class="unlink" tabindex="0" onclick="Actions.unlink(${client.id},${c.id},'client')">Unlink</a></td></tr>`).join('')}
+      </tbody></table></div>`}`;
+  },
+
+  contactForm(id) {
+    this.current = 'contacts'; setNav('nav-contacts');
+    const contact = id ? Store.contacts.find(c => c.id === id) : null;
+    $('#view').innerHTML = `
+      <div class="bar"><h2>${contact ? 'Edit contact' : 'New contact'}</h2><button class="secondary" onclick="Views.contacts()">Back</button></div>
+      <div class="tabs">
+        <button type="button" class="tab" data-tab="general" onclick="showTab('general')">General</button>
+        <button type="button" class="tab" data-tab="clients" ${contact ? 'onclick="showTab(\'clients\')"' : 'disabled'}>Client(s)</button>
+      </div>
+      <div class="pane" data-pane="general">
+        <form id="f" novalidate>
+          <label for="name">Name</label><input type="text" id="name" value="${contact ? esc(contact.name) : ''}" autocomplete="off"><div class="msg"></div>
+          <label for="surname">Surname</label><input type="text" id="surname" value="${contact ? esc(contact.surname) : ''}" autocomplete="off"><div class="msg"></div>
+          <label for="email">Email</label><input type="text" id="email" value="${contact ? esc(contact.email) : ''}" autocomplete="off"><div class="msg"></div>
+          <div class="actions"><button type="submit">Save</button></div>
+        </form>
+      </div>
+      <div class="pane" data-pane="clients" hidden></div>`;
+    showTab('general');
+    $('#f').onsubmit = e => {
+      e.preventDefault();
+      const n = $('#name'), s = $('#surname'), m = $('#email'), email = m.value.trim();
+      let ok = fieldError(n, n.value.trim() ? '' : 'Name is required.');
+      ok = fieldError(s, s.value.trim() ? '' : 'Surname is required.') && ok;
+      let emailErr = !email ? 'Email is required.' : !validEmail(email) ? 'Enter a valid email address.' : '';
+      if (!emailErr && Store.contacts.some(c => c.id !== (contact && contact.id) && c.email.toLowerCase() === email.toLowerCase()))
+        emailErr = 'This email address is already in use.';
+      ok = fieldError(m, emailErr) && ok;
+      if (!ok) return;
+      const data = { name: n.value.trim(), surname: s.value.trim(), email };
+      if (contact) { Object.assign(contact, data); toast('Contact saved'); return; }
+      const created = { id: Store.id(), ...data };
+      Store.contacts.push(created); toast('Contact saved'); Views.contactForm(created.id);
+    };
+    if (contact) this.renderContactClients(contact);
+  },
+
+  renderContactClients(contact) {
+    const linked = linkedClients(contact.id);
+    const free = Store.clients.filter(c => !linked.includes(c)).sort((a, b) => byText(a.name, b.name));
+    $('[data-pane=clients]').innerHTML = `
+      <div class="link-row"><select id="pick" aria-label="Client to link"><option value="">Select a client…</option>
+        ${free.map(c => `<option value="${c.id}">${esc(c.name)} (${c.code})</option>`).join('')}</select>
+        <button onclick="Actions.linkClient(${contact.id})">Link client</button></div>
+      ${linked.length === 0 ? `<div class="empty">${Msg.noClientsOnContact}</div>` : `
+      <div class="scroll"><table><thead><tr><th>Client name</th><th>Client code</th><th></th></tr></thead><tbody>
+      ${linked.map(c => `<tr><td>${esc(c.name)}</td><td>${c.code}</td>
+        <td><a class="unlink" tabindex="0" onclick="Actions.unlink(${c.id},${contact.id},'contact')">Unlink</a></td></tr>`).join('')}
+      </tbody></table></div>`}`;
+  }
+};
+
+const Actions = {
+  linkContact(clientId) {
+    const v = +$('#pick').value; if (!v) return toast('Select a contact first', 'err');
+    if (!Store.links.some(l => l.clientId === clientId && l.contactId === v)) Store.links.push({ clientId, contactId: v });
+    Views.renderClientContacts(Store.clients.find(c => c.id === clientId)); toast('Contact linked');
+  },
+  linkClient(contactId) {
+    const v = +$('#pick').value; if (!v) return toast('Select a client first', 'err');
+    if (!Store.links.some(l => l.clientId === v && l.contactId === contactId)) Store.links.push({ clientId: v, contactId });
+    Views.renderContactClients(Store.contacts.find(c => c.id === contactId)); toast('Client linked');
+  },
+  unlink(clientId, contactId, from) {
+    Store.links = Store.links.filter(l => !(l.clientId === clientId && l.contactId === contactId));
+    if (from === 'client') Views.renderClientContacts(Store.clients.find(c => c.id === clientId));
+    else Views.renderContactClients(Store.contacts.find(c => c.id === contactId));
+    toast('Unlinked');
+  }
+};
+
+/* ============ Demo controls: sample data and empty state ============ */
+const Demo = {
+  paint() {
+    $('#demo-text').textContent = Store.sample
+      ? 'Sample data is loaded so you can try the screens. Clear it to see the empty states.'
+      : 'No data. Create a client or a contact, or load the sample data.';
+    $('#demo-sample').hidden = Store.sample && Store.clients.length > 0;
+  },
+  clear() {
+    Store.clients = []; Store.contacts = []; Store.links = []; Store.nextId = 1; Store.sample = false;
+    this.paint(); Views[Views.current === 'contacts' ? 'contacts' : 'clients'](); toast('All data cleared');
+  },
+  sample() {
+    Store.clients = []; Store.contacts = []; Store.links = []; Store.nextId = 1;
+    const addClient = name => { const c = { id: Store.id(), name, code: generateClientCode(name, new Set(Store.clients.map(x => x.code))) }; Store.clients.push(c); return c; };
+    const addContact = (name, surname, email) => { const c = { id: Store.id(), name, surname, email }; Store.contacts.push(c); return c; };
+    const fnb = addClient('First National Bank'), pro = addClient('Protea'), it = addClient('IT'), fnb2 = addClient('First National Bank');
+    const anna = addContact('Anna', 'Smith', 'anna.smith@example.com'), ben = addContact('Ben', 'Adams', 'ben.adams@example.com'), thandi = addContact('Thandi', 'Nkosi', 'thandi.nkosi@example.com');
+    [[fnb, anna], [fnb, ben], [pro, anna], [it, thandi]].forEach(([c, ct]) => Store.links.push({ clientId: c.id, contactId: ct.id }));
+    void fnb2;
+    Store.sample = true; this.paint(); Views[Views.current === 'contacts' ? 'contacts' : 'clients'](); toast('Sample data loaded');
+  }
+};
+
+Demo.sample();
+Views.clients();
+</script>
+
+</body></html>
