@@ -1,36 +1,133 @@
-# Binary City: Clients & Contacts (vanilla PHP, MVC, PostgreSQL)
+# Binary City: Clients & Contacts Management System
 
-## Run it
+**Binary City Development Practical Test – November 2026**
+
+A web-based Client and Contact Management application built using vanilla PHP, Object-Oriented Programming (OOP), MVC architecture, PostgreSQL, and JavaScript/AJAX.
+
+## 1. Requirements
+
+- PHP 8.1 or later
+- PostgreSQL
+- PHP PDO PostgreSQL extension (`pdo_pgsql`)
+- Modern web browser
+
+## 2. Installation and Setup
+
+Create the database:
+
 ```bash
 createdb binary_city
-psql -d binary_city -f database/schema.pgsql.sql
+```
 
-# optional overrides: DB_HOST DB_PORT DB_NAME DB_USER DB_PASS (see config/config.php)
+Import the database schema:
+
+```bash
+psql -d binary_city -f database/schema.pgsql.sql
+```
+
+Configure database credentials using the environment variables:
+
+```text
+DB_HOST
+DB_PORT
+DB_NAME
+DB_USER
+DB_PASS
+```
+
+Refer to `config/config.php` for configuration details.
+
+Start the PHP development server:
+
+```bash
 php -S localhost:8000 -t public public/index.php
 ```
-Open http://localhost:8000. Requires PHP 8.1+ with `pdo_pgsql`. On Apache, point the document root at `public/` (`.htaccess` is included).
 
-## Structure
-```
-public/index.php          front controller, routes, autoloader
-public/assets/app.js      AJAX calls, tabs, client-side validation (mirrors PHP rules)
-src/Core/                 Router, Database (PDO), Validator, View, Response
-src/Models/               Client, Contact (all SQL lives here)
-src/Controllers/          ClientController, ContactController (pages + JSON API)
-src/Services/             ClientCodeGenerator
-views/                    layout + page shells (data loaded via AJAX)
-database/                 schema.pgsql.sql, schema.dbml (ER diagram for dbdiagram.io)
-tests/                    php tests/code_generator_test.php
+Open the application:
+
+```text
+http://localhost:8000
 ```
 
-## QA / Testing
-A functional test script is included at `Dev/Test Cases/Binary_City_Clients_Contacts_Test_Script.docx`.
-It covers client and contact workflows, generated client codes, validation, email uniqueness,
-many-to-many relationships, database integrity, and basic security/reliability checks.
+For Apache deployment, configure the document root to point to the `public/` directory. An `.htaccess` file is included.
 
-Run the automated client-code generator tests with:
+## 3. Project Structure
+
+```text
+public/
+    index.php
+    assets/app.js
+
+src/
+    Core/
+    Models/
+    Controllers/
+    Services/
+
+views/
+
+database/
+    schema.pgsql.sql
+    schema.dbml
+
+tests/
+    code_generator_test.php
+
+Dev/
+    Test Cases/
+```
+
+### Architecture
+
+- **Core:** Routing, database connectivity, validation, views, and HTTP responses.
+- **Models:** Client and Contact data operations.
+- **Controllers:** Client and Contact application workflows and JSON API endpoints.
+- **Services:** Client code generation.
+- **Views:** Application layouts and page structures.
+- **Public:** Front controller and frontend JavaScript/AJAX functionality.
+- **Database:** PostgreSQL schema and ER diagram definition.
+- **Tests:** Automated tests and functional testing documentation.
+
+## 4. QA and Testing
+
+The functional test documentation is included at:
+
+`Dev/Test Cases/Binary_City_Clients_Contacts_Test_Script.docx`
+
+The test script covers:
+
+- Client and contact management workflows.
+- Automatic client code generation.
+- Input validation.
+- Email uniqueness.
+- Many-to-many client/contact relationships.
+- Database integrity.
+- Basic security and reliability checks.
+
+Run the automated client-code generator tests:
+
 ```bash
 php tests/code_generator_test.php
 ```
-The database-backed portion requires PHP PDO PostgreSQL support (`pdo_pgsql`) and a reachable
-PostgreSQL test database. Use a disposable QA database when executing tests that insert or modify data.
+
+Database-backed tests require the PHP PDO PostgreSQL extension and access to a PostgreSQL test database.
+
+Use a disposable QA database when running tests that insert or modify records.
+
+## 5. Database Technology
+
+The application uses PostgreSQL for persistent data storage and PDO for database access.
+
+The database schema is provided in:
+
+`database/schema.pgsql.sql`
+
+An ER diagram definition is available in:
+
+`database/schema.dbml`
+
+## 6. Developer
+
+**Juliu Kamuhamba**
+
+Binary City Development Practical Test – November 2026
